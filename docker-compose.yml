@@ -1,0 +1,33 @@
+name: sijil
+
+# Local dev infra only. Backend and frontend run natively (not containerized here) for
+# fast reload — see architecture doc Section 22.
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: sijil
+      POSTGRES_PASSWORD: sijil
+      POSTGRES_DB: sijil
+    ports:
+      - "5432:5432"
+    volumes:
+      - sijil_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sijil"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  sijil_pgdata:

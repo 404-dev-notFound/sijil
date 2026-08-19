@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Env files (never commit real secrets — .env.example files are the checked-in templates)
+.env
+.env.local
+*.env.local
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+
+# Object storage / build artifacts
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
