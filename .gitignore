@@ -24,6 +24,10 @@ out/
 dist/
 build/
 
+# Tool/hook session artifacts (empty markers written by the dev harness)
+pre-log.json
+post-log.json
+
 # OS
 .DS_Store
 Thumbs.db
