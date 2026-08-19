@@ -24,6 +24,12 @@ class Settings(BaseSettings):
     jwt_secret: str = Field(alias="JWT_SECRET")
     object_storage_bucket: str = Field(alias="OBJECT_STORAGE_BUCKET")
     object_storage_endpoint: str = Field(default="", alias="OBJECT_STORAGE_ENDPOINT")
+    # Defaults match the docker-compose MinIO service for local dev. Real deployments
+    # override these via env vars — never commit real credentials (architecture doc
+    # Section 23: secrets exclusively via env vars).
+    object_storage_access_key: str = Field(default="minioadmin", alias="OBJECT_STORAGE_ACCESS_KEY")
+    object_storage_secret_key: str = Field(default="minioadmin", alias="OBJECT_STORAGE_SECRET_KEY")
+    object_storage_region: str = Field(default="us-east-1", alias="OBJECT_STORAGE_REGION")
 
     llm_provider: str = Field(default="mock", alias="LLM_PROVIDER")
     llm_api_key: str = Field(default="", alias="LLM_API_KEY")
