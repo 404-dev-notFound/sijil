@@ -5,35 +5,32 @@ on:
     branches: [main]
   pull_request:
 
+env:
+  DATABASE_URL: postgresql+asyncpg://sijil:sijil@localhost:5432/sijil_test
+  REDIS_URL: redis://localhost:6379/0
+  JWT_SECRET: ci-test-secret
+  OBJECT_STORAGE_BUCKET: sijil-test
+  OBJECT_STORAGE_ENDPOINT: http://localhost:9000
+  OBJECT_STORAGE_ACCESS_KEY: minioadmin
+  OBJECT_STORAGE_SECRET_KEY: minioadmin
+
 jobs:
   backend:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
-    services:
-      postgres:
-        image: pgvector/pgvector:pg16
-        env:
-          POSTGRES_USER: sijil
-          POSTGRES_PASSWORD: sijil
-          POSTGRES_DB: sijil_test
-        ports: ["5432:5432"]
-        options: >-
-          --health-cmd "pg_isready -U sijil"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis:7-alpine
-        ports: ["6379:6379"]
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - uses: actions/checkout@v4
+
+      # Reuses the real docker-compose.yml (Postgres/pgvector + Redis + MinIO) rather
+      # than duplicating service definitions in GitHub Actions' `services:` syntax —
+      # that syntax also has no way to pass MinIO's required `server /data` command.
+      # The sijil_test database is created automatically by
+      # docker/postgres/init-test-db.sh on this fresh container.
+      - name: Start infra (Postgres, Redis, MinIO)
+        working-directory: ${{ github.workspace }}
+        run: docker compose up -d --wait
 
       - uses: actions/setup-python@v5
         with:
@@ -46,17 +43,15 @@ jobs:
         run: ruff check .
 
       - name: Type check
-        run: mypy app
+        run: mypy app tests
+
+      - name: Apply migrations
+        run: alembic upgrade head
 
       - name: Unit tests
         run: pytest tests/unit -v
 
       - name: Integration tests
-        env:
-          DATABASE_URL: postgresql+asyncpg://sijil:sijil@localhost:5432/sijil_test
-          REDIS_URL: redis://localhost:6379/0
-          JWT_SECRET: ci-test-secret
-          OBJECT_STORAGE_BUCKET: sijil-test
         run: pytest tests/integration -v
 
       # Phase 3+: add the golden-set classification regression step here (architecture

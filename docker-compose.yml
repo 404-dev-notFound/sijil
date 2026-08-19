@@ -13,6 +13,7 @@ services:
       - "5432:5432"
     volumes:
       - sijil_pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init-test-db.sh:/docker-entrypoint-initdb.d/init-test-db.sh
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sijil"]
       interval: 5s
@@ -29,5 +30,26 @@ services:
       timeout: 5s
       retries: 5
 
+  # S3-compatible object storage for local dev (architecture doc Section 9/13) — real
+  # deployments point OBJECT_STORAGE_ENDPOINT at AWS S3 / a UAE-region equivalent
+  # instead.
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - sijil_miniodata:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 volumes:
   sijil_pgdata:
+  sijil_miniodata:

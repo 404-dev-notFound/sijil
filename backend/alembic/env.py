@@ -7,7 +7,10 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 from app.config.settings import get_settings
-from app.models.base import Base
+
+# Importing app.models (not just app.models.base) registers every model class against
+# Base.metadata before autogenerate runs — see app/models/__init__.py.
+from app.models import Base
 
 config = context.config
 
@@ -19,8 +22,6 @@ if config.config_file_name is not None:
 settings = get_settings()
 config.set_main_option("sqlalchemy.url", settings.database_url)
 
-# Import model modules here as they're added (Phase 1+) so Base.metadata picks them up
-# for autogenerate.
 target_metadata = Base.metadata
 
 
