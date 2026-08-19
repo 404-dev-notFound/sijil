@@ -19,6 +19,7 @@ htmlcov/
 node_modules/
 .next/
 out/
+*.tsbuildinfo
 
 # Object storage / build artifacts
 dist/
