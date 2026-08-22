@@ -32,6 +32,8 @@ class ShipmentService:
             direction=request.direction,
             status=ShipmentStatus.CREATED,
             notes=request.notes,
+            origin_country=request.origin_country,
+            destination_country=request.destination_country,
         )
         return await self._shipments.create(shipment)
 

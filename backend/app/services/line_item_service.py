@@ -66,9 +66,10 @@ class LineItemService:
         line_item.classification.user_override_reason = reason
 
         # Commit before enqueueing — same rationale as trigger_reclassify below. An
-        # override changes the effective HS code permit determination is based on.
+        # override changes the effective HS code permit/CEPA determination is based on.
         await self._session.commit()
         celery_app.send_task("triage_shipment_permits", args=[str(shipment_id)])
+        celery_app.send_task("determine_shipment_origin", args=[str(shipment_id)])
 
         return line_item
 

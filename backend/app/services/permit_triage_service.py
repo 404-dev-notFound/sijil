@@ -2,11 +2,11 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.line_item import LineItem
 from app.models.permit_requirement import PermitRequirement
 from app.repositories.line_item_repository import LineItemRepository
 from app.repositories.permit_requirement_repository import PermitRequirementRepository
 from app.repositories.permit_rules_repository import PermitRule, PermitRulesRepository
+from app.services.line_item_helpers import effective_hs_code
 
 
 class PermitTriageService:
@@ -34,10 +34,10 @@ class PermitTriageService:
         # not duplicate rows.
         grouped: dict[tuple[str, str], PermitRequirement] = {}
         for line_item in line_items:
-            effective_hs_code = _effective_hs_code(line_item)
-            if effective_hs_code is None:
+            hs_code = effective_hs_code(line_item)
+            if hs_code is None:
                 continue
-            for rule in self._rules.find_matching(effective_hs_code):
+            for rule in self._rules.find_matching(hs_code):
                 key = (rule.regulator, rule.permit_type)
                 requirement = grouped.get(key)
                 if requirement is None:
@@ -46,14 +46,6 @@ class PermitTriageService:
                 requirement.applies_to_line_items.append(str(line_item.id))
 
         await self._permits.replace_for_shipment(shipment_id, list(grouped.values()))
-
-
-def _effective_hs_code(line_item: LineItem) -> str | None:
-    classification = line_item.classification
-    if classification is None:
-        return None
-    hs_code: str | None = classification.user_override_hs_code or classification.hs_code
-    return hs_code
 
 
 def _to_permit_requirement(shipment_id: uuid.UUID, rule: PermitRule) -> PermitRequirement:

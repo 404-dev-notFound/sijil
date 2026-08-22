@@ -1,7 +1,7 @@
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Enum, ForeignKey, Index, Text
+from sqlalchemy import Enum, ForeignKey, Index, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -38,6 +38,15 @@ class Shipment(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         default=ShipmentStatus.CREATED,
     )
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Country names (not ISO codes — kept simple, matched against
+    # data/cepa_rules/rules_v1.json's origin_country/destination_country fields as
+    # plain strings). Nullable: Phases 1-5 never needed this; CEPAOriginService
+    # (Phase 6) can't determine an applicable agreement without it, so a shipment
+    # missing these just yields NOT_APPLICABLE for every line item rather than an
+    # error (architecture doc Section 6.4's inputs: "HS code, origin country,
+    # destination country, value-content breakdown").
+    origin_country: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    destination_country: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     documents: Mapped[list["Document"]] = relationship(
         back_populates="shipment", cascade="all, delete-orphan"

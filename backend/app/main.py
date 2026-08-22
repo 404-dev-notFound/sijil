@@ -4,7 +4,15 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from sqlalchemy import text
 
-from app.api.v1 import auth, classification, companies, discrepancies, permit_triage, shipments
+from app.api.v1 import (
+    auth,
+    cepa,
+    classification,
+    companies,
+    discrepancies,
+    permit_triage,
+    shipments,
+)
 from app.config.database import engine
 from app.config.settings import get_settings
 from app.integrations.object_storage import ObjectStorageClient
@@ -38,7 +46,8 @@ app.include_router(
 app.include_router(
     permit_triage.router, prefix="/api/v1/shipments", tags=["permit-triage"]
 )
-# Phase 6+: cepa.py, billing.py mount here once their business logic exists.
+app.include_router(cepa.router, prefix="/api/v1/shipments", tags=["cepa-origin"])
+# Phase 7+: billing.py mounts here once its business logic exists.
 
 
 @app.get("/health")

@@ -56,7 +56,9 @@ class LineItemRepository:
             select(LineItem)
             .join(Shipment, LineItem.shipment_id == Shipment.id)
             .where(LineItem.id == line_item_id, Shipment.company_id.in_(company_ids))
-            .options(selectinload(LineItem.classification))
+            .options(
+                selectinload(LineItem.classification), selectinload(LineItem.origin_determination)
+            )
         )
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()

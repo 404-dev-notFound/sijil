@@ -1,0 +1,24 @@
+[
+  {
+    "agreement": "UAE-India CEPA",
+    "origin_country": "India",
+    "destination_country": "UAE",
+    "hs_code_prefixes": ["8517", "6109"],
+    "regional_value_content_threshold_percent": 35,
+    "required_documents": ["Preferential Certificate of Origin (India)"],
+    "duty_rate_without_percent": 5,
+    "duty_rate_with_percent": 0,
+    "source": "illustrative_seed"
+  },
+  {
+    "agreement": "UAE-Indonesia CEPA",
+    "origin_country": "Indonesia",
+    "destination_country": "UAE",
+    "hs_code_prefixes": ["8471", "9403"],
+    "regional_value_content_threshold_percent": 40,
+    "required_documents": ["Preferential Certificate of Origin (Indonesia)"],
+    "duty_rate_without_percent": 5,
+    "duty_rate_with_percent": 0,
+    "source": "illustrative_seed"
+  }
+]
