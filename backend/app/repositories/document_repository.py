@@ -40,3 +40,17 @@ class DocumentRepository:
         )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
+
+    async def get_by_id(self, document_id: uuid.UUID) -> Document | None:
+        """No tenant scope — for the background worker only, which operates on a
+        document_id it already enqueued itself, not on client-supplied input. Never
+        call this from an API-reachable code path (architecture doc Section 14)."""
+        result = await self._session.execute(select(Document).where(Document.id == document_id))
+        return result.scalar_one_or_none()
+
+    async def list_by_shipment(self, shipment_id: uuid.UUID) -> list[Document]:
+        """No tenant scope — worker-only, same rationale as get_by_id above."""
+        result = await self._session.execute(
+            select(Document).where(Document.shipment_id == shipment_id)
+        )
+        return list(result.scalars().all())

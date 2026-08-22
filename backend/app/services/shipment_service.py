@@ -59,3 +59,12 @@ class ShipmentService:
             page=page,
             page_size=page_size,
         )
+
+    async def get_status(
+        self, shipment_id: uuid.UUID, *, accessible_company_ids: list[uuid.UUID]
+    ) -> ShipmentStatus | None:
+        """Used by the SSE status-streaming endpoint's poll loop — returns None (rather
+        than raising) once the shipment stops being accessible/found, so the caller can
+        end the stream cleanly instead of surfacing an error on an already-open
+        connection."""
+        return await self._shipments.get_status_scoped(shipment_id, accessible_company_ids)

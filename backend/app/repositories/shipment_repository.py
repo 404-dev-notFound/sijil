@@ -61,3 +61,21 @@ class ShipmentRepository:
         )
         result = await self._session.execute(stmt)
         return list(result.scalars().all()), total
+
+    async def get_by_id(self, shipment_id: uuid.UUID) -> Shipment | None:
+        """No tenant scope — for the background worker only (architecture doc Section
+        14). Never call this from an API-reachable code path."""
+        result = await self._session.execute(select(Shipment).where(Shipment.id == shipment_id))
+        return result.scalar_one_or_none()
+
+    async def get_status_scoped(
+        self, shipment_id: uuid.UUID, company_ids: list[uuid.UUID]
+    ) -> ShipmentStatus | None:
+        """Lightweight scalar read for the SSE status-streaming endpoint's poll loop —
+        deliberately not the full ORM entity, so each poll is a fresh committed-data
+        read under READ COMMITTED with no identity-map staleness to worry about."""
+        stmt = select(Shipment.status).where(
+            Shipment.id == shipment_id, Shipment.company_id.in_(company_ids)
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()

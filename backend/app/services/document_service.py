@@ -1,4 +1,5 @@
 import uuid
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -7,12 +8,15 @@ from app.models.document import Document
 from app.models.enums import DocumentStatus, DocumentType, ShipmentStatus
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.shipment_repository import ShipmentRepository
-from app.utils.exceptions import NotFoundError, UnprocessableError, ValidationError
+from app.services.shipment_status_transitions import compute_shipment_status
+from app.utils.exceptions import ConflictError, NotFoundError, UnprocessableError, ValidationError
 from app.utils.file_validation import MAX_FILE_SIZE_BYTES, sniff_content_type
+from app.workers.celery_app import celery_app
 
 
 class DocumentService:
     def __init__(self, session: AsyncSession) -> None:
+        self._session = session
         self._shipments = ShipmentRepository(session)
         self._documents = DocumentRepository(session)
         self._storage = ObjectStorageClient()
@@ -72,5 +76,57 @@ class DocumentService:
 
         if shipment.status == ShipmentStatus.CREATED:
             shipment.status = ShipmentStatus.DOCUMENTS_UPLOADING
+
+        # Commit before enqueueing: the worker runs in a separate process against its
+        # own DB connection, so it must never be able to dequeue and look up a document
+        # row that isn't durably committed yet (get_db's usual "commit after the route
+        # handler returns" would otherwise race the worker).
+        await self._session.commit()
+        celery_app.send_task("process_document", args=[str(document.id)])
+
+        return document
+
+    async def get_document(
+        self,
+        *,
+        shipment_id: uuid.UUID,
+        document_id: uuid.UUID,
+        accessible_company_ids: list[uuid.UUID],
+    ) -> Document:
+        document = await self._documents.get_by_id_scoped(document_id, accessible_company_ids)
+        if document is None or document.shipment_id != shipment_id:
+            raise NotFoundError("Document not found.")
+        return document
+
+    async def correct_extracted_fields(
+        self,
+        *,
+        shipment_id: uuid.UUID,
+        document_id: uuid.UUID,
+        accessible_company_ids: list[uuid.UUID],
+        corrected_fields: dict[str, Any],
+    ) -> Document:
+        document = await self._documents.get_by_id_scoped(document_id, accessible_company_ids)
+        if document is None or document.shipment_id != shipment_id:
+            raise NotFoundError("Document not found.")
+        if document.status != DocumentStatus.NEEDS_MANUAL_REVIEW:
+            raise ConflictError(
+                "Only documents with status needs_manual_review can be manually corrected.",
+                details={"status": document.status},
+            )
+
+        document.extracted_fields = {**(document.extracted_fields or {}), **corrected_fields}
+        document.status = DocumentStatus.EXTRACTED
+
+        sibling_documents = await self._documents.list_by_shipment_scoped(
+            shipment_id, accessible_company_ids
+        )
+        new_status = compute_shipment_status(sibling_documents)
+        if new_status is not None:
+            shipment = await self._shipments.get_by_id_scoped(
+                shipment_id, accessible_company_ids
+            )
+            if shipment is not None:
+                shipment.status = new_status
 
         return document

@@ -48,11 +48,28 @@ jobs:
       - name: Apply migrations
         run: alembic upgrade head
 
+      # Real worker process (not eager/inline execution) — the same Redis broker and
+      # process boundary the document-extraction pipeline relies on in production
+      # (architecture doc Section 11.1). Backend/frontend already run natively rather
+      # than containerized here (docker-compose.yml), so the worker does too.
+      - name: Start Celery worker
+        run: |
+          nohup celery -A app.workers.celery_app worker --loglevel=info --pool=solo \
+            > /tmp/celery.log 2>&1 &
+          for i in $(seq 1 15); do
+            celery -A app.workers.celery_app inspect ping -t 2 && break
+            sleep 1
+          done
+
       - name: Unit tests
         run: pytest tests/unit -v
 
       - name: Integration tests
         run: pytest tests/integration -v
+
+      - name: Celery worker log
+        if: always()
+        run: cat /tmp/celery.log || true
 
       # Phase 3+: add the golden-set classification regression step here (architecture
       # doc Section 25) once ClassificationService and tests/golden_sets/ exist — it
