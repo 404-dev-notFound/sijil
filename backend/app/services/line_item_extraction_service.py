@@ -1,5 +1,4 @@
 import uuid
-from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,6 +7,7 @@ from app.models.enums import DocumentType
 from app.models.line_item import LineItem
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.line_item_repository import LineItemRepository
+from app.utils.decimals import parse_decimal
 
 
 class LineItemExtractionService:
@@ -37,16 +37,7 @@ class LineItemExtractionService:
         return LineItem(
             shipment_id=shipment_id,
             description=raw.get("description") or "",
-            quantity=_parse_decimal(raw.get("quantity")),
-            unit_value=_parse_decimal(unit_value.get("amount")),
+            quantity=parse_decimal(raw.get("quantity")),
+            unit_value=parse_decimal(unit_value.get("amount")),
             currency=unit_value.get("currency"),
         )
-
-
-def _parse_decimal(value: Any) -> Decimal | None:
-    if value is None:
-        return None
-    try:
-        return Decimal(str(value).replace(",", ""))
-    except InvalidOperation:
-        return None

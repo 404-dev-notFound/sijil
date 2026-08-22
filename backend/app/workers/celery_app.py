@@ -19,10 +19,13 @@ celery_app.conf.update(
     imports=(
         "app.workers.document_processing_tasks",
         "app.workers.classification_tasks",
+        "app.workers.consistency_tasks",
     ),
 )
 
 # Phase 2: document_processing_tasks.py registers "process_document" against this app.
-# Phase 3: classification_tasks.py registers "classify_shipment_from_document".
+# Phase 3: classification_tasks.py registers "classify_shipment_from_document" and
+# "reclassify_line_item".
+# Phase 4: consistency_tasks.py registers "check_shipment_consistency".
 # Phase 7: report_generation_tasks.py adds "generate_report" the same way. Workers call
 # services/ directly, not through the API layer (architecture doc Section 5).

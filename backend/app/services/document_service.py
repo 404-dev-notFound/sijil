@@ -136,5 +136,8 @@ class DocumentService:
             celery_app.send_task(
                 "classify_shipment_from_document", args=[str(document.id)]
             )
+        # Every doc_type, not just the invoice — same rationale as
+        # document_processing_tasks.py's post-extraction trigger.
+        celery_app.send_task("check_shipment_consistency", args=[str(document.shipment_id)])
 
         return document

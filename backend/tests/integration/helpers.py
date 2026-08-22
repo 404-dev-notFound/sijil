@@ -1,5 +1,6 @@
 import asyncio
 import uuid
+from collections.abc import Callable
 
 from httpx import AsyncClient
 
@@ -89,5 +90,37 @@ async def wait_for_line_items_classified(
         elapsed += _POLL_INTERVAL_SECONDS
     raise AssertionError(
         f"line items for shipment {shipment_id} did not all reach a classified state "
+        f"within {timeout}s (last seen: {items!r})"
+    )
+
+
+async def wait_for_discrepancies(
+    client: AsyncClient,
+    *,
+    shipment_id: str,
+    headers: dict[str, str],
+    predicate: Callable[[list[dict]], bool],
+    timeout: float = _DEFAULT_POLL_TIMEOUT_SECONDS,
+) -> list[dict]:
+    """Polls GET .../discrepancies until predicate(items) is True, or raises if it
+    isn't within timeout. A plain count/emptiness check doesn't work here — zero
+    discrepancies is itself a valid settled state, indistinguishable from "hasn't run
+    yet" — so the caller supplies whatever positive condition its scenario expects to
+    eventually become true (e.g. "the quantity discrepancy has appeared"), and can then
+    safely assert on the rest of that same settled snapshot."""
+    elapsed = 0.0
+    items: list[dict] = []
+    while elapsed < timeout:
+        response = await client.get(
+            f"/api/v1/shipments/{shipment_id}/discrepancies", headers=headers
+        )
+        assert response.status_code == 200, response.text
+        items = response.json()["items"]
+        if predicate(items):
+            return items
+        await asyncio.sleep(_POLL_INTERVAL_SECONDS)
+        elapsed += _POLL_INTERVAL_SECONDS
+    raise AssertionError(
+        f"discrepancies for shipment {shipment_id} never satisfied the predicate "
         f"within {timeout}s (last seen: {items!r})"
     )

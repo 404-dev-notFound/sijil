@@ -48,3 +48,15 @@ class DocumentStatus(StrEnum):
     EXTRACTED = "extracted"
     NEEDS_MANUAL_REVIEW = "needs_manual_review"
     FAILED = "failed"
+
+
+class DiscrepancySeverity(StrEnum):
+    """architecture doc Section 2.3 / API SPEC Section 9. A shipment cannot move to
+    analysis_complete while a BLOCKING discrepancy is unresolved — not yet enforced
+    anywhere, since nothing transitions a shipment to analysis_complete until Phase
+    5/6 exist; whichever phase adds that transition must check for unresolved
+    BLOCKING discrepancies first."""
+
+    BLOCKING = "blocking"
+    WARNING = "warning"
+    INFORMATIONAL = "informational"

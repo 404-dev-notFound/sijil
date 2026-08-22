@@ -10,6 +10,7 @@ from app.models.enums import ShipmentDirection, ShipmentStatus
 from app.models.mixins import TimestampMixin, UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
+    from app.models.discrepancy import Discrepancy
     from app.models.document import Document
     from app.models.line_item import LineItem
 
@@ -41,5 +42,8 @@ class Shipment(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         back_populates="shipment", cascade="all, delete-orphan"
     )
     line_items: Mapped[list["LineItem"]] = relationship(
+        back_populates="shipment", cascade="all, delete-orphan"
+    )
+    discrepancies: Mapped[list["Discrepancy"]] = relationship(
         back_populates="shipment", cascade="all, delete-orphan"
     )

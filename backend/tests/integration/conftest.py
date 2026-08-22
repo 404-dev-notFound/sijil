@@ -18,6 +18,7 @@ from app.services.tariff_seed_service import seed_tariff_headings_if_empty
 _TABLES_IN_DELETE_ORDER = [
     "classification_results",
     "line_items",
+    "discrepancies",
     "documents",
     "shipments",
     "users",
