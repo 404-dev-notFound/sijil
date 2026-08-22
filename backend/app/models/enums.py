@@ -60,3 +60,18 @@ class DiscrepancySeverity(StrEnum):
     BLOCKING = "blocking"
     WARNING = "warning"
     INFORMATIONAL = "informational"
+
+
+class OriginQualificationStatus(StrEnum):
+    """architecture doc Section 6.4 — qualifies is explicitly three-state, not a plain
+    boolean: missing value-content data must surface as INSUFFICIENT_DATA, never a
+    silent false negative ("a false negative costs the user real money"). NOT_APPLICABLE
+    is this codebase's own addition beyond the API spec's literal fields — a product
+    whose origin/destination/HS-code combination isn't covered by any seeded CEPA
+    agreement at all is a different, equally real case from "we don't have enough data
+    about a covered agreement yet"."""
+
+    QUALIFIES = "qualifies"
+    DOES_NOT_QUALIFY = "does_not_qualify"
+    INSUFFICIENT_DATA = "insufficient_data"
+    NOT_APPLICABLE = "not_applicable"

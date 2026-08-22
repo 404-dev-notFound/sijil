@@ -11,6 +11,7 @@ from app.models.mixins import TimestampMixin, UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
     from app.models.classification_result import ClassificationResult
+    from app.models.origin_determination import OriginDetermination
     from app.models.shipment import Shipment
 
 
@@ -33,5 +34,8 @@ class LineItem(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     shipment: Mapped["Shipment"] = relationship(back_populates="line_items")
     classification: Mapped["ClassificationResult | None"] = relationship(
+        back_populates="line_item", uselist=False, cascade="all, delete-orphan"
+    )
+    origin_determination: Mapped["OriginDetermination | None"] = relationship(
         back_populates="line_item", uselist=False, cascade="all, delete-orphan"
     )

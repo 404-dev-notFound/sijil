@@ -179,3 +179,37 @@ async def wait_for_permits_settled(
         f"permits for shipment {shipment_id} never stabilized within {timeout}s "
         f"(last seen: {current!r})"
     )
+
+
+async def wait_for_origin_determination(
+    client: AsyncClient,
+    *,
+    shipment_id: str,
+    line_item_id: str,
+    headers: dict[str, str],
+    predicate: Callable[[dict], bool] = lambda _: True,
+    timeout: float = _DEFAULT_POLL_TIMEOUT_SECONDS,
+) -> dict:
+    """Polls GET .../origin until it returns 200 and predicate(body) is True. Unlike
+    permits/discrepancies, "doesn't exist yet" here is a real 404 (CEPAOriginService
+    always creates a row once it runs at all, even a NOT_APPLICABLE/INSUFFICIENT_DATA
+    one), so a 404 just means keep polling rather than a settled empty state."""
+    elapsed = 0.0
+    last_status = 0
+    body: dict = {}
+    while elapsed < timeout:
+        response = await client.get(
+            f"/api/v1/shipments/{shipment_id}/line-items/{line_item_id}/origin",
+            headers=headers,
+        )
+        last_status = response.status_code
+        if response.status_code == 200:
+            body = response.json()
+            if predicate(body):
+                return body
+        await asyncio.sleep(_POLL_INTERVAL_SECONDS)
+        elapsed += _POLL_INTERVAL_SECONDS
+    raise AssertionError(
+        f"origin determination for line item {line_item_id} never satisfied the "
+        f"predicate within {timeout}s (last status: {last_status}, last body: {body!r})"
+    )

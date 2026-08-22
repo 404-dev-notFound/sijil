@@ -37,9 +37,11 @@ async def _classify_shipment_from_document(document_id: uuid.UUID) -> None:
 
         # Chained after commit, not inside the transaction above — same "commit
         # before enqueue" rule as document_processing_tasks.py (architecture doc
-        # Section 11.2: permit triage runs immediately following classification).
+        # Section 11.2: permit triage and CEPA origin both run immediately following
+        # classification).
         if shipment_id is not None:
             celery_app.send_task("triage_shipment_permits", args=[str(shipment_id)])
+            celery_app.send_task("determine_shipment_origin", args=[str(shipment_id)])
     finally:
         await engine.dispose()
 
@@ -67,8 +69,9 @@ async def _reclassify_line_item(line_item_id: uuid.UUID) -> None:
                 raise
 
         # A reclassify can change this line item's HS code, which can change which
-        # permits apply to the whole shipment.
+        # permits apply and which CEPA agreement (if any) covers it.
         if shipment_id is not None:
             celery_app.send_task("triage_shipment_permits", args=[str(shipment_id)])
+            celery_app.send_task("determine_shipment_origin", args=[str(shipment_id)])
     finally:
         await engine.dispose()

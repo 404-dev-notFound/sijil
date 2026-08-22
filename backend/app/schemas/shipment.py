@@ -16,6 +16,11 @@ class ShipmentCreateRequest(BaseModel):
     direction: ShipmentDirection
     on_behalf_of_company_id: uuid.UUID | None = None
     notes: str | None = None
+    # Needed for CEPA origin determination (architecture doc Section 6.4) — optional
+    # since Phases 1-5 never needed it; a shipment without these just yields
+    # NOT_APPLICABLE for every line item's origin determination.
+    origin_country: str | None = None
+    destination_country: str | None = None
 
 
 class ShipmentOut(BaseModel):
@@ -26,6 +31,8 @@ class ShipmentOut(BaseModel):
     direction: ShipmentDirection
     status: ShipmentStatus
     notes: str | None
+    origin_country: str | None
+    destination_country: str | None
     created_at: datetime
 
 
