@@ -64,6 +64,12 @@ class LineItemService:
         # (API SPEC Section 8: both are retained for audit purposes).
         line_item.classification.user_override_hs_code = hs_code
         line_item.classification.user_override_reason = reason
+
+        # Commit before enqueueing — same rationale as trigger_reclassify below. An
+        # override changes the effective HS code permit determination is based on.
+        await self._session.commit()
+        celery_app.send_task("triage_shipment_permits", args=[str(shipment_id)])
+
         return line_item
 
     async def trigger_reclassify(

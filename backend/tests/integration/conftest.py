@@ -1,8 +1,10 @@
+import asyncio
 from collections.abc import AsyncGenerator
 
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 
 from app.config.database import async_session_factory, engine
 from app.integrations.embedding_client import get_embedding_client
@@ -17,6 +19,7 @@ from app.services.tariff_seed_service import seed_tariff_headings_if_empty
 # way it would in production.
 _TABLES_IN_DELETE_ORDER = [
     "classification_results",
+    "permit_requirements",
     "line_items",
     "discrepancies",
     "documents",
@@ -41,14 +44,35 @@ async def _seeded_tariff_kb() -> None:
         await seed_tariff_headings_if_empty(session, get_embedding_client())
 
 
+_CLEANUP_MAX_ATTEMPTS = 10
+_CLEANUP_RETRY_DELAY_SECONDS = 0.3
+
+
 @pytest_asyncio.fixture(autouse=True)
 async def _clean_database() -> AsyncGenerator[None]:
     """Every integration test starts against an empty database — this is what makes
     the tenant-isolation tests trustworthy (no leftover rows from a previous test could
-    accidentally satisfy a query)."""
-    async with engine.begin() as conn:
-        for table in _TABLES_IN_DELETE_ORDER:
-            await conn.execute(text(f"DELETE FROM {table}"))
+    accidentally satisfy a query).
+
+    Retries on a transient FK violation rather than assuming the real Celery worker is
+    always idle by the time a test function returns: a test that triggers a multi-hop
+    chain (e.g. classify -> triage_shipment_permits) isn't obligated to wait for every
+    downstream hop to finish before it ends, so the worker can still be inserting a
+    row for the previous test's shipment while this fixture's delete sequence is
+    mid-flight. The alternative — auditing every test that touches any chained task
+    for a "wait until fully settled" call, forever, as more phases add more hops — is
+    the wrong fix for what's fundamentally a timing overlap, not a test bug.
+    """
+    for attempt in range(_CLEANUP_MAX_ATTEMPTS):
+        try:
+            async with engine.begin() as conn:
+                for table in _TABLES_IN_DELETE_ORDER:
+                    await conn.execute(text(f"DELETE FROM {table}"))
+            break
+        except IntegrityError:
+            if attempt == _CLEANUP_MAX_ATTEMPTS - 1:
+                raise
+            await asyncio.sleep(_CLEANUP_RETRY_DELAY_SECONDS)
     yield
 
 

@@ -20,6 +20,7 @@ def classify_shipment_from_document_task(document_id: str) -> None:
 
 
 async def _classify_shipment_from_document(document_id: uuid.UUID) -> None:
+    shipment_id: uuid.UUID | None = None
     try:
         async with async_session_factory() as session:
             try:
@@ -27,13 +28,18 @@ async def _classify_shipment_from_document(document_id: uuid.UUID) -> None:
                     document_id
                 )
                 if line_items:
-                    await ClassificationService(session).classify_shipment(
-                        line_items[0].shipment_id
-                    )
+                    shipment_id = line_items[0].shipment_id
+                    await ClassificationService(session).classify_shipment(shipment_id)
                 await session.commit()
             except Exception:
                 await session.rollback()
                 raise
+
+        # Chained after commit, not inside the transaction above — same "commit
+        # before enqueue" rule as document_processing_tasks.py (architecture doc
+        # Section 11.2: permit triage runs immediately following classification).
+        if shipment_id is not None:
+            celery_app.send_task("triage_shipment_permits", args=[str(shipment_id)])
     finally:
         await engine.dispose()
 
@@ -47,15 +53,22 @@ def reclassify_line_item_task(line_item_id: str) -> None:
 
 
 async def _reclassify_line_item(line_item_id: uuid.UUID) -> None:
+    shipment_id: uuid.UUID | None = None
     try:
         async with async_session_factory() as session:
             try:
                 line_item = await LineItemRepository(session).get_by_id(line_item_id)
                 if line_item is not None:
+                    shipment_id = line_item.shipment_id
                     await ClassificationService(session).classify(line_item)
                 await session.commit()
             except Exception:
                 await session.rollback()
                 raise
+
+        # A reclassify can change this line item's HS code, which can change which
+        # permits apply to the whole shipment.
+        if shipment_id is not None:
+            celery_app.send_task("triage_shipment_permits", args=[str(shipment_id)])
     finally:
         await engine.dispose()

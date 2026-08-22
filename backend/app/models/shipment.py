@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from app.models.discrepancy import Discrepancy
     from app.models.document import Document
     from app.models.line_item import LineItem
+    from app.models.permit_requirement import PermitRequirement
 
 
 class Shipment(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -45,5 +46,8 @@ class Shipment(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         back_populates="shipment", cascade="all, delete-orphan"
     )
     discrepancies: Mapped[list["Discrepancy"]] = relationship(
+        back_populates="shipment", cascade="all, delete-orphan"
+    )
+    permit_requirements: Mapped[list["PermitRequirement"]] = relationship(
         back_populates="shipment", cascade="all, delete-orphan"
     )

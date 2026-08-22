@@ -38,10 +38,15 @@ class LineItemRepository:
         return result.scalar_one_or_none()
 
     async def list_by_shipment(self, shipment_id: uuid.UUID) -> list[LineItem]:
-        """No tenant scope — worker-only."""
-        result = await self._session.execute(
-            select(LineItem).where(LineItem.shipment_id == shipment_id)
+        """No tenant scope — worker-only. Eager-loads .classification (PermitTriage
+        Service reads each item's effective HS code off it) so a lazy load never
+        crosses an async context boundary (Phase 1's MissingGreenlet lesson)."""
+        stmt = (
+            select(LineItem)
+            .where(LineItem.shipment_id == shipment_id)
+            .options(selectinload(LineItem.classification))
         )
+        result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
     async def get_by_id_scoped(

@@ -124,3 +124,58 @@ async def wait_for_discrepancies(
         f"discrepancies for shipment {shipment_id} never satisfied the predicate "
         f"within {timeout}s (last seen: {items!r})"
     )
+
+
+async def wait_for_permits(
+    client: AsyncClient,
+    *,
+    shipment_id: str,
+    headers: dict[str, str],
+    predicate: Callable[[list[dict]], bool],
+    timeout: float = _DEFAULT_POLL_TIMEOUT_SECONDS,
+) -> list[dict]:
+    """Polls GET .../permits until predicate(items) is True — same rationale as
+    wait_for_discrepancies (zero permits is itself a valid settled state)."""
+    elapsed = 0.0
+    items: list[dict] = []
+    while elapsed < timeout:
+        response = await client.get(f"/api/v1/shipments/{shipment_id}/permits", headers=headers)
+        assert response.status_code == 200, response.text
+        items = response.json()["items"]
+        if predicate(items):
+            return items
+        await asyncio.sleep(_POLL_INTERVAL_SECONDS)
+        elapsed += _POLL_INTERVAL_SECONDS
+    raise AssertionError(
+        f"permits for shipment {shipment_id} never satisfied the predicate within "
+        f"{timeout}s (last seen: {items!r})"
+    )
+
+
+async def wait_for_permits_settled(
+    client: AsyncClient,
+    *,
+    shipment_id: str,
+    headers: dict[str, str],
+    timeout: float = _DEFAULT_POLL_TIMEOUT_SECONDS,
+) -> dict:
+    """Polls GET .../permits until two consecutive reads return an identical result —
+    used specifically for a "no permits required at all" scenario, where the expected
+    end state (empty items) is indistinguishable by content alone from "triage hasn't
+    run yet"."""
+    elapsed = 0.0
+    previous: dict | None = None
+    current: dict = {}
+    while elapsed < timeout:
+        response = await client.get(f"/api/v1/shipments/{shipment_id}/permits", headers=headers)
+        assert response.status_code == 200, response.text
+        current = response.json()
+        if current == previous:
+            return current
+        previous = current
+        await asyncio.sleep(_POLL_INTERVAL_SECONDS)
+        elapsed += _POLL_INTERVAL_SECONDS
+    raise AssertionError(
+        f"permits for shipment {shipment_id} never stabilized within {timeout}s "
+        f"(last seen: {current!r})"
+    )
