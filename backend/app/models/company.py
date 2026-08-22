@@ -10,6 +10,7 @@ from app.models.enums import AccountType
 from app.models.mixins import TimestampMixin, UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
+    from app.models.subscription import Subscription
     from app.models.user import User
 
 
@@ -33,4 +34,7 @@ class Company(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     users: Mapped[list["User"]] = relationship(
         back_populates="company", foreign_keys="User.company_id"
+    )
+    subscription: Mapped["Subscription | None"] = relationship(
+        back_populates="company", uselist=False, cascade="all, delete-orphan"
     )

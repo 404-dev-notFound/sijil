@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from app.models.document import Document
     from app.models.line_item import LineItem
     from app.models.permit_requirement import PermitRequirement
+    from app.models.report import Report
 
 
 class Shipment(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -58,5 +59,8 @@ class Shipment(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         back_populates="shipment", cascade="all, delete-orphan"
     )
     permit_requirements: Mapped[list["PermitRequirement"]] = relationship(
+        back_populates="shipment", cascade="all, delete-orphan"
+    )
+    reports: Mapped[list["Report"]] = relationship(
         back_populates="shipment", cascade="all, delete-orphan"
     )

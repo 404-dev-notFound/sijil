@@ -75,3 +75,22 @@ class OriginQualificationStatus(StrEnum):
     DOES_NOT_QUALIFY = "does_not_qualify"
     INSUFFICIENT_DATA = "insufficient_data"
     NOT_APPLICABLE = "not_applicable"
+
+
+class ReportStatus(StrEnum):
+    """API SPEC Section 12."""
+
+    GENERATING = "generating"
+    READY = "ready"
+    FAILED = "failed"
+
+
+class SubscriptionStatus(StrEnum):
+    """Mirrors common billing-provider subscription states (API SPEC Section 13) —
+    driven entirely by webhook events (app/services/billing_service.py), never set
+    directly from a user request."""
+
+    ACTIVE = "active"
+    PAST_DUE = "past_due"
+    CANCELED = "canceled"
+    INCOMPLETE = "incomplete"

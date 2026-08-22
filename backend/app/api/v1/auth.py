@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config.database import get_db
 from app.config.settings import get_settings
+from app.middleware.rate_limit import limiter
 from app.schemas.auth import (
     LoginRequest,
     RegisterRequest,
@@ -17,7 +18,9 @@ from app.utils.exceptions import UnauthenticatedError
 
 router = APIRouter()
 
+settings = get_settings()
 _REFRESH_COOKIE_NAME = "refresh_token"
+_AUTH_RATE_LIMIT = f"{settings.auth_rate_limit_per_minute}/minute"
 
 
 def _set_refresh_cookie(response: Response, refresh_token: str) -> None:
@@ -34,12 +37,14 @@ def _set_refresh_cookie(response: Response, refresh_token: str) -> None:
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED, response_model=RegisterResponse)
+@limiter.limit(_AUTH_RATE_LIMIT)
 async def register(
-    request: RegisterRequest,
+    body: RegisterRequest,
     response: Response,
     db: Annotated[AsyncSession, Depends(get_db)],
+    request: Request,
 ) -> RegisterResponse:
-    result = await AuthService(db).register(request)
+    result = await AuthService(db).register(body)
     _set_refresh_cookie(response, result.refresh_token)
     return RegisterResponse(
         company_id=result.user.company_id, user_id=result.user.id, access_token=result.access_token
@@ -47,12 +52,14 @@ async def register(
 
 
 @router.post("/login", response_model=TokenResponse)
+@limiter.limit(_AUTH_RATE_LIMIT)
 async def login(
-    request: LoginRequest,
+    body: LoginRequest,
     response: Response,
     db: Annotated[AsyncSession, Depends(get_db)],
+    request: Request,
 ) -> TokenResponse:
-    result = await AuthService(db).login(request)
+    result = await AuthService(db).login(body)
     _set_refresh_cookie(response, result.refresh_token)
     return TokenResponse(
         access_token=result.access_token,
@@ -62,6 +69,7 @@ async def login(
 
 
 @router.post("/refresh", response_model=TokenResponse)
+@limiter.limit(_AUTH_RATE_LIMIT)
 async def refresh(
     request: Request,
     response: Response,

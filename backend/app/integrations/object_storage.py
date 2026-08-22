@@ -47,6 +47,17 @@ class ObjectStorageClient:
         body: bytes = response["Body"].read()
         return body
 
+    def generate_presigned_url(self, key: str, *, expires_in_seconds: int) -> str:
+        """A short-lived signed download URL, regenerated on each request rather than
+        permanently public (API SPEC Section 12) — this is how a generated report ever
+        leaves the bucket at all, since it's never served directly from a public one."""
+        url: str = self._client.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": self._bucket, "Key": key},
+            ExpiresIn=expires_in_seconds,
+        )
+        return url
+
     @staticmethod
     def build_document_key(
         *,
@@ -57,5 +68,11 @@ class ObjectStorageClient:
     ) -> str:
         # Non-guessable, tenant-prefixed key. Files are never served directly from a
         # public bucket (architecture doc Section 15) — downloads go through a
-        # short-lived signed URL, added when report generation needs it (Phase 7).
+        # short-lived signed URL instead (generate_presigned_url above).
         return f"{company_id}/{shipment_id}/{document_id}/{filename}"
+
+    @staticmethod
+    def build_report_key(
+        *, company_id: uuid.UUID, shipment_id: uuid.UUID, report_id: uuid.UUID
+    ) -> str:
+        return f"{company_id}/{shipment_id}/reports/{report_id}.pdf"

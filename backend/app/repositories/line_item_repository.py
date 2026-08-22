@@ -39,12 +39,15 @@ class LineItemRepository:
 
     async def list_by_shipment(self, shipment_id: uuid.UUID) -> list[LineItem]:
         """No tenant scope — worker-only. Eager-loads .classification (PermitTriage
-        Service reads each item's effective HS code off it) so a lazy load never
-        crosses an async context boundary (Phase 1's MissingGreenlet lesson)."""
+        Service/CEPAOriginService read each item's effective HS code off it) and
+        .origin_determination (ReportService bundles it) so a lazy load never crosses
+        an async context boundary (Phase 1's MissingGreenlet lesson)."""
         stmt = (
             select(LineItem)
             .where(LineItem.shipment_id == shipment_id)
-            .options(selectinload(LineItem.classification))
+            .options(
+                selectinload(LineItem.classification), selectinload(LineItem.origin_determination)
+            )
         )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
