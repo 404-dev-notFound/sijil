@@ -129,4 +129,12 @@ class DocumentService:
             if shipment is not None:
                 shipment.status = new_status
 
+        should_classify = document.doc_type == DocumentType.COMMERCIAL_INVOICE
+        # Commit before enqueueing — same rationale as upload_document above.
+        await self._session.commit()
+        if should_classify:
+            celery_app.send_task(
+                "classify_shipment_from_document", args=[str(document.id)]
+            )
+
         return document

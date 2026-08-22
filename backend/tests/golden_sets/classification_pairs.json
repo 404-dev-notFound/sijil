@@ -1,0 +1,22 @@
+[
+  {"description": "13-inch laptop computer, 1.1kg, aluminum body", "expected_hs_code": "8471.30"},
+  {"description": "Desktop PC tower with built-in CPU and I/O ports", "expected_hs_code": "8471.41"},
+  {"description": "Smartphone with 5G cellular connectivity", "expected_hs_code": "8517.12"},
+  {"description": "24-port managed network switch for a data center", "expected_hs_code": "8517.62"},
+  {"description": "42-inch flat screen color television", "expected_hs_code": "8528.72"},
+  {"description": "Men's cotton crew-neck t-shirt, size L", "expected_hs_code": "6109.10"},
+  {"description": "Leather ankle boots with a rubber sole", "expected_hs_code": "6403.99"},
+  {"description": "18-karat gold necklace with pendant", "expected_hs_code": "7113.19"},
+  {"description": "Four-door sedan car, 2.0L petrol engine", "expected_hs_code": "8703.23"},
+  {"description": "Digital stethoscope for doctors", "expected_hs_code": "9018.90"},
+  {"description": "Solid wood dining table and chair set", "expected_hs_code": "9403.60"},
+  {"description": "Plastic toy dump truck for children", "expected_hs_code": "9503.00"},
+  {"description": "Fresh cavendish bananas, boxed", "expected_hs_code": "0803.90"},
+  {"description": "Roasted whole coffee beans, 1kg bag", "expected_hs_code": "0901.21"},
+  {"description": "White polished long-grain rice, 25kg sack", "expected_hs_code": "1006.30"},
+  {"description": "Bottled lager beer, case of 24", "expected_hs_code": "2203.00"},
+  {"description": "Prescription tablets in blister packs, retail packaging", "expected_hs_code": "3004.90"},
+  {"description": "Radial car tires for passenger vehicles", "expected_hs_code": "4011.10"},
+  {"description": "Hardcover printed novel", "expected_hs_code": "4901.99"},
+  {"description": "Purebred Arabian breeding horse", "expected_hs_code": "0101.21"}
+]

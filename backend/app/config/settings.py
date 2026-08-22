@@ -33,6 +33,9 @@ class Settings(BaseSettings):
 
     llm_provider: str = Field(default="mock", alias="LLM_PROVIDER")
     llm_api_key: str = Field(default="", alias="LLM_API_KEY")
+    # claude-opus-5 by default — never silently downgraded for cost; change this
+    # explicitly if you want a cheaper model for production classification volume.
+    llm_model: str = Field(default="claude-opus-5", alias="LLM_MODEL")
     ocr_provider: str = Field(default="mock", alias="OCR_PROVIDER")
     ocr_api_key: str = Field(default="", alias="OCR_API_KEY")
 
@@ -41,6 +44,18 @@ class Settings(BaseSettings):
     extraction_confidence_threshold: float = Field(
         default=0.7, alias="EXTRACTION_CONFIDENCE_THRESHOLD"
     )
+
+    # Local, no-API-key embedding model (app/integrations/embedding_client.py) — swap
+    # only together with TariffHeading.EMBEDDING_DIMENSIONS and a full re-embed.
+    embedding_model: str = Field(default="all-MiniLM-L6-v2", alias="EMBEDDING_MODEL")
+
+    # Same "never silently accept a low-confidence guess" rule as extraction, applied
+    # to HS classification (architecture doc Section 6.1).
+    classification_confidence_threshold: float = Field(
+        default=0.7, alias="CLASSIFICATION_CONFIDENCE_THRESHOLD"
+    )
+    # How many nearest tariff headings to hand the LLM as classification candidates.
+    tariff_kb_search_limit: int = Field(default=10, alias="TARIFF_KB_SEARCH_LIMIT")
 
     access_token_expire_minutes: int = Field(default=15, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
     refresh_token_expire_days: int = Field(default=7, alias="REFRESH_TOKEN_EXPIRE_DAYS")

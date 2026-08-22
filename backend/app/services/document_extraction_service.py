@@ -7,6 +7,7 @@ from app.config.settings import get_settings
 from app.integrations.llm_client import LLMClient, get_llm_client
 from app.integrations.object_storage import ObjectStorageClient
 from app.integrations.ocr_client import OCRClient, get_ocr_client
+from app.models.document import Document
 from app.models.enums import DocumentStatus
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.shipment_repository import ShipmentRepository
@@ -38,12 +39,12 @@ class DocumentExtractionService:
         self._ocr = ocr_client or get_ocr_client()
         self._settings = get_settings()
 
-    async def extract(self, document_id: uuid.UUID) -> None:
+    async def extract(self, document_id: uuid.UUID) -> Document | None:
         document = await self._documents.get_by_id(document_id)
         if document is None:
             # Idempotency: re-running for a document that no longer exists is a no-op,
             # not an error (architecture doc Section 12).
-            return
+            return None
 
         document.status = DocumentStatus.PROCESSING
         await self._recompute_shipment_status(document.shipment_id)
@@ -67,6 +68,7 @@ class DocumentExtractionService:
             else DocumentStatus.NEEDS_MANUAL_REVIEW
         )
         await self._recompute_shipment_status(document.shipment_id)
+        return document
 
     def _extract_raw_text(self, file_bytes: bytes, content_type: str) -> str:
         if content_type == "application/pdf":
