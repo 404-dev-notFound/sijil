@@ -24,7 +24,9 @@ _TABLES_IN_DELETE_ORDER = [
     "line_items",
     "discrepancies",
     "documents",
+    "reports",
     "shipments",
+    "subscriptions",
     "users",
     "companies",
 ]

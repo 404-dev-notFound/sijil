@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from sqlalchemy import ColumnElement, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -67,6 +68,19 @@ class ShipmentRepository:
         14). Never call this from an API-reachable code path."""
         result = await self._session.execute(select(Shipment).where(Shipment.id == shipment_id))
         return result.scalar_one_or_none()
+
+    async def count_since(self, company_id: uuid.UUID, since: datetime) -> int:
+        """Used by BillingService to derive shipments_used_this_period — always scoped
+        to exactly one company. Billing is per-company, never aggregated across a
+        broker's managed companies, so this deliberately takes a single company_id
+        rather than the usual company_ids scope list."""
+        stmt = (
+            select(func.count())
+            .select_from(Shipment)
+            .where(Shipment.company_id == company_id, Shipment.created_at >= since)
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar_one()
 
     async def get_status_scoped(
         self, shipment_id: uuid.UUID, company_ids: list[uuid.UUID]

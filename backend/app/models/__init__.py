@@ -8,7 +8,9 @@ from app.models.document import Document
 from app.models.line_item import LineItem
 from app.models.origin_determination import OriginDetermination
 from app.models.permit_requirement import PermitRequirement
+from app.models.report import Report
 from app.models.shipment import Shipment
+from app.models.subscription import Subscription
 from app.models.tariff_heading import TariffHeading
 from app.models.user import User
 
@@ -21,7 +23,9 @@ __all__ = [
     "LineItem",
     "OriginDetermination",
     "PermitRequirement",
+    "Report",
     "Shipment",
+    "Subscription",
     "TariffHeading",
     "User",
 ]

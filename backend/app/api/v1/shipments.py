@@ -13,6 +13,7 @@ from app.middleware.auth import get_accessible_company_ids, get_current_user
 from app.models.enums import DocumentType, ShipmentDirection, ShipmentStatus
 from app.models.user import User
 from app.schemas.common import PaginatedResponse
+from app.schemas.report import ReportTriggerResponse
 from app.schemas.shipment import (
     DocumentCorrectionRequest,
     DocumentOut,
@@ -22,6 +23,7 @@ from app.schemas.shipment import (
     ShipmentOut,
 )
 from app.services.document_service import DocumentService
+from app.services.report_service import ReportService
 from app.services.shipment_service import ShipmentService
 from app.utils.exceptions import NotFoundError
 
@@ -159,6 +161,22 @@ async def correct_document(
         corrected_fields=request.extracted_fields,
     )
     return DocumentOut.model_validate(document)
+
+
+@router.post(
+    "/{shipment_id}/report",
+    status_code=status.HTTP_202_ACCEPTED,
+    response_model=ReportTriggerResponse,
+)
+async def trigger_report(
+    shipment_id: uuid.UUID,
+    accessible_company_ids: Annotated[list[uuid.UUID], Depends(get_accessible_company_ids)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ReportTriggerResponse:
+    report = await ReportService(db).trigger_generation(
+        shipment_id, accessible_company_ids=accessible_company_ids
+    )
+    return ReportTriggerResponse(report_id=report.id, status=report.status)
 
 
 @router.get("/{shipment_id}/events")

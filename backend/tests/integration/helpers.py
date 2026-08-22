@@ -181,6 +181,31 @@ async def wait_for_permits_settled(
     )
 
 
+async def wait_for_report_ready(
+    client: AsyncClient,
+    *,
+    report_id: str,
+    headers: dict[str, str],
+    timeout: float = _DEFAULT_POLL_TIMEOUT_SECONDS,
+) -> dict:
+    """Polls GET /reports/{id} until the real Celery worker finishes PDF generation
+    and the report reaches a terminal status (ready or failed)."""
+    elapsed = 0.0
+    report: dict = {}
+    while elapsed < timeout:
+        response = await client.get(f"/api/v1/reports/{report_id}", headers=headers)
+        assert response.status_code == 200, response.text
+        report = response.json()
+        if report["status"] in {"ready", "failed"}:
+            return report
+        await asyncio.sleep(_POLL_INTERVAL_SECONDS)
+        elapsed += _POLL_INTERVAL_SECONDS
+    raise AssertionError(
+        f"report {report_id} did not reach a terminal status within {timeout}s "
+        f"(last status: {report['status']!r})"
+    )
+
+
 async def wait_for_origin_determination(
     client: AsyncClient,
     *,

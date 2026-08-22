@@ -60,6 +60,29 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = Field(default=15, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
     refresh_token_expire_days: int = Field(default=7, alias="REFRESH_TOKEN_EXPIRE_DAYS")
 
+    # Sijil never collects card details directly (architecture doc Section 15) — the
+    # billing provider hosts checkout and is the source of truth for subscription
+    # state via webhooks. Mock until a real provider (Stripe or a regional
+    # equivalent) is configured; set a real, secret value before ever using
+    # billing_provider=stripe (or similar) in production.
+    billing_provider: str = Field(default="mock", alias="BILLING_PROVIDER")
+    billing_webhook_secret: str = Field(
+        default="mock-webhook-secret-change-in-production", alias="BILLING_WEBHOOK_SECRET"
+    )
+
+    # Short-lived signed download URL TTL for generated reports (API SPEC Section 12:
+    # "regenerated on each request rather than permanently public").
+    report_download_url_expire_seconds: int = Field(
+        default=900, alias="REPORT_DOWNLOAD_URL_EXPIRE_SECONDS"
+    )
+
+    # API SPEC Section 15 — brute-force mitigation on auth endpoints. The
+    # document-upload limit is explicitly left an open assumption in the plan
+    # ("tunable per plan tier... to be tuned against real LLM API costs") and isn't
+    # implemented yet — plan tiers don't exist as an enforceable concept until real
+    # billing usage data exists to tune against.
+    auth_rate_limit_per_minute: int = Field(default=10, alias="AUTH_RATE_LIMIT_PER_MINUTE")
+
 
 @lru_cache
 def get_settings() -> Settings:

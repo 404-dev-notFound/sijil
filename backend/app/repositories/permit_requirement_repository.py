@@ -31,6 +31,13 @@ class PermitRequirementRepository:
         await self._session.flush()
         return requirements
 
+    async def list_by_shipment(self, shipment_id: uuid.UUID) -> list[PermitRequirement]:
+        """No tenant scope — worker-only (app/services/report_service.py)."""
+        result = await self._session.execute(
+            select(PermitRequirement).where(PermitRequirement.shipment_id == shipment_id)
+        )
+        return list(result.scalars().all())
+
     async def list_by_shipment_scoped(
         self, shipment_id: uuid.UUID, company_ids: list[uuid.UUID]
     ) -> list[PermitRequirement]:

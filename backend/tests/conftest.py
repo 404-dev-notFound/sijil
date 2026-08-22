@@ -15,3 +15,9 @@ os.environ.setdefault("OBJECT_STORAGE_BUCKET", "sijil-test")
 os.environ.setdefault("OBJECT_STORAGE_ENDPOINT", "http://localhost:9000")
 os.environ.setdefault("OBJECT_STORAGE_ACCESS_KEY", "minioadmin")
 os.environ.setdefault("OBJECT_STORAGE_SECRET_KEY", "minioadmin")
+# The real Redis-backed rate limiter (app/middleware/rate_limit.py) is shared across
+# every test in the run, all hitting /api/v1/auth/* from the same test-client address —
+# the production default (10/minute) would start rejecting registrations partway
+# through any real test suite. Effectively unlimited here; production behavior is
+# unaffected since this is only a setdefault.
+os.environ.setdefault("AUTH_RATE_LIMIT_PER_MINUTE", "100000")

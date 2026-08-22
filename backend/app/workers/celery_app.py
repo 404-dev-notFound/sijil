@@ -22,6 +22,7 @@ celery_app.conf.update(
         "app.workers.consistency_tasks",
         "app.workers.permit_triage_tasks",
         "app.workers.cepa_origin_tasks",
+        "app.workers.report_generation_tasks",
     ),
 )
 

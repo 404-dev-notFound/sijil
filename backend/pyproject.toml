@@ -23,6 +23,8 @@ dependencies = [
   "pypdf>=5.0",
   "anthropic>=1.0",
   "sentence-transformers>=3.3",
+  "reportlab>=4.0",
+  "slowapi>=0.1.9",
 ]
 
 [project.optional-dependencies]
@@ -32,7 +34,6 @@ dev = [
   "pytest>=8.3",
   "pytest-asyncio>=0.24",
   "pytest-cov>=6.0",
-  "reportlab>=4.0",
 ]
 
 [build-system]
@@ -60,7 +61,7 @@ no_implicit_optional = true
 exclude = ["^alembic/versions/"]
 
 [[tool.mypy.overrides]]
-module = ["celery.*", "jose.*", "boto3.*", "botocore.*", "reportlab.*"]
+module = ["celery.*", "jose.*", "boto3.*", "botocore.*", "reportlab.*", "slowapi.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
