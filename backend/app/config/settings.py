@@ -36,6 +36,12 @@ class Settings(BaseSettings):
     ocr_provider: str = Field(default="mock", alias="OCR_PROVIDER")
     ocr_api_key: str = Field(default="", alias="OCR_API_KEY")
 
+    # Below this, a document's extraction is never silently accepted as certain — it's
+    # flagged needs_manual_review instead (architecture doc "Do Not Do This" rules).
+    extraction_confidence_threshold: float = Field(
+        default=0.7, alias="EXTRACTION_CONFIDENCE_THRESHOLD"
+    )
+
     access_token_expire_minutes: int = Field(default=15, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
     refresh_token_expire_days: int = Field(default=7, alias="REFRESH_TOKEN_EXPIRE_DAYS")
 

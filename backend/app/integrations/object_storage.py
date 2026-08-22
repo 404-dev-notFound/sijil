@@ -42,6 +42,11 @@ class ObjectStorageClient:
             Bucket=self._bucket, Key=key, Body=body, ContentType=content_type
         )
 
+    def download(self, key: str) -> bytes:
+        response = self._client.get_object(Bucket=self._bucket, Key=key)
+        body: bytes = response["Body"].read()
+        return body
+
     @staticmethod
     def build_document_key(
         *,

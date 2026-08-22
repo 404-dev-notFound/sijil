@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
@@ -38,6 +39,7 @@ class DocumentOut(BaseModel):
     original_filename: str
     content_type: str
     size_bytes: int
+    extracted_fields: dict[str, Any] | None = None
     extraction_confidence: float | None
     created_at: datetime
 
@@ -50,3 +52,11 @@ class DocumentUploadResponse(BaseModel):
     document_id: uuid.UUID
     status: DocumentStatus
     estimated_completion_seconds: int
+
+
+class DocumentCorrectionRequest(BaseModel):
+    """Partial extracted_fields object with corrected values (API SPEC Section 7) —
+    merged onto the document's existing extracted_fields, keyed the same way
+    MockLLMClient.extract_document_fields names them (e.g. "invoice_number")."""
+
+    extracted_fields: dict[str, Any]

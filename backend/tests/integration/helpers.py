@@ -1,6 +1,10 @@
+import asyncio
 import uuid
 
 from httpx import AsyncClient
+
+_POLL_INTERVAL_SECONDS = 0.2
+_DEFAULT_POLL_TIMEOUT_SECONDS = 10.0
 
 
 async def register_company(
@@ -29,3 +33,32 @@ async def register_company(
 
 def auth_headers(access_token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {access_token}"}
+
+
+async def wait_for_document_status(
+    client: AsyncClient,
+    *,
+    shipment_id: str,
+    document_id: str,
+    headers: dict[str, str],
+    terminal_statuses: set[str],
+    timeout: float = _DEFAULT_POLL_TIMEOUT_SECONDS,
+) -> dict:
+    """Polls GET .../documents/{id} until the real Celery worker (a genuine separate
+    process — see .github/workflows/ci.yml) finishes processing and the document
+    reaches one of terminal_statuses, or raises if it doesn't within timeout."""
+    elapsed = 0.0
+    while elapsed < timeout:
+        response = await client.get(
+            f"/api/v1/shipments/{shipment_id}/documents/{document_id}", headers=headers
+        )
+        assert response.status_code == 200, response.text
+        document = response.json()
+        if document["status"] in terminal_statuses:
+            return document
+        await asyncio.sleep(_POLL_INTERVAL_SECONDS)
+        elapsed += _POLL_INTERVAL_SECONDS
+    raise AssertionError(
+        f"document {document_id} did not reach {terminal_statuses} within {timeout}s "
+        f"(last status: {document['status']!r})"
+    )
