@@ -1,5 +1,5 @@
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import String, Text
+from sqlalchemy import Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -22,6 +22,17 @@ class TariffHeading(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     """
 
     __tablename__ = "tariff_headings"
+    __table_args__ = (
+        # Declared here (not just via raw op.execute() in the Phase 3 migration) so
+        # Alembic autogenerate recognizes it going forward instead of proposing to
+        # drop it on every subsequent migration.
+        Index(
+            "ix_tariff_headings_embedding_cosine",
+            "embedding",
+            postgresql_using="hnsw",
+            postgresql_ops={"embedding": "vector_cosine_ops"},
+        ),
+    )
 
     hs_code: Mapped[str] = mapped_column(String(20), nullable=False, unique=True, index=True)
     description: Mapped[str] = mapped_column(Text, nullable=False)

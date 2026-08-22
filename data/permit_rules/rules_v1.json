@@ -1,0 +1,50 @@
+[
+  {
+    "regulator": "MOCCAE",
+    "permit_type": "Food/agricultural import permit",
+    "hs_code_prefixes": ["0101", "0803", "0901", "1006"],
+    "estimated_processing_time_days": 5,
+    "reference_link": "https://www.moccae.gov.ae/en/services.aspx",
+    "source": "illustrative_seed"
+  },
+  {
+    "regulator": "MOHAP",
+    "permit_type": "Pharmaceutical import registration",
+    "hs_code_prefixes": ["3004"],
+    "estimated_processing_time_days": 15,
+    "reference_link": "https://mohap.gov.ae/en/AboutUs/Pages/eServices.aspx",
+    "source": "illustrative_seed"
+  },
+  {
+    "regulator": "MOHAP",
+    "permit_type": "Medical device registration",
+    "hs_code_prefixes": ["9018"],
+    "estimated_processing_time_days": 20,
+    "reference_link": "https://mohap.gov.ae/en/AboutUs/Pages/eServices.aspx",
+    "source": "illustrative_seed"
+  },
+  {
+    "regulator": "TDRA",
+    "permit_type": "Telecom equipment type approval",
+    "hs_code_prefixes": ["8517"],
+    "estimated_processing_time_days": 10,
+    "reference_link": "https://tdra.gov.ae/en/technology-affairs/type-approval",
+    "source": "illustrative_seed"
+  },
+  {
+    "regulator": "ESMA/MoIAT",
+    "permit_type": "Emirates conformity assessment (ECAS) marking",
+    "hs_code_prefixes": ["8528", "9018"],
+    "estimated_processing_time_days": 7,
+    "reference_link": "https://www.moiat.gov.ae/en/services/product-conformity",
+    "source": "illustrative_seed"
+  },
+  {
+    "regulator": "Ministry of Interior",
+    "permit_type": "Motor vehicle import approval",
+    "hs_code_prefixes": ["8703"],
+    "estimated_processing_time_days": 14,
+    "reference_link": "https://www.moi.gov.ae/en/eservices.aspx",
+    "source": "illustrative_seed"
+  }
+]

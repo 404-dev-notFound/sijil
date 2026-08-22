@@ -17,6 +17,7 @@ from app.services.tariff_seed_service import seed_tariff_headings_if_empty
 # way it would in production.
 _TABLES_IN_DELETE_ORDER = [
     "classification_results",
+    "permit_requirements",
     "line_items",
     "discrepancies",
     "documents",
