@@ -1,0 +1,102 @@
+[
+  {
+    "hs_code": "0101.21",
+    "description": "Live horses, purebred breeding animals",
+    "source": "illustrative_seed_wco_6digit"
+  },
+  {
+    "hs_code": "0803.90",
+    "description": "Bananas, fresh, other than plantains",
+    "source": "illustrative_seed_wco_6digit"
+  },
+  {
+    "hs_code": "0901.21",
+    "description": "Coffee, roasted, not decaffeinated",
+    "source": "illustrative_seed_wco_6digit"
+  },
+  {
+    "hs_code": "1006.30",
+    "description": "Rice, semi-milled or wholly milled, whether or not polished or glazed",
+    "source": "illustrative_seed_wco_6digit"
+  },
+  {
+    "hs_code": "2203.00",
+    "description": "Beer made from malt",
+    "source": "illustrative_seed_wco_6digit"
+  },
+  {
+    "hs_code": "3004.90",
+    "description": "Medicaments, mixed or unmixed, put up in measured doses for retail sale",
+    "source": "illustrative_seed_wco_6digit"
+  },
+  {
+    "hs_code": "4011.10",
+    "description": "New pneumatic tyres, of rubber, of a kind used on motor cars",
+    "source": "illustrative_seed_wco_6digit"
+  },
+  {
+    "hs_code": "4901.99",
+    "description": "Printed books, brochures and similar printed matter",
+    "source": "illustrative_seed_wco_6digit"
+  },
+  {
+    "hs_code": "6109.10",
+    "description": "T-shirts, singlets and other vests, of cotton, knitted or crocheted",
+    "source": "illustrative_seed_wco_6digit"
+  },
+  {
+    "hs_code": "6403.99",
+    "description": "Footwear with outer soles of rubber, plastics or leather and uppers of leather",
+    "source": "illustrative_seed_wco_6digit"
+  },
+  {
+    "hs_code": "7113.19",
+    "description": "Articles of jewellery of precious metal, other than silver",
+    "source": "illustrative_seed_wco_6digit"
+  },
+  {
+    "hs_code": "8471.30",
+    "description": "Portable automatic data processing machines, weighing not more than 10kg, consisting of at least a CPU, keyboard and display (laptops)",
+    "source": "illustrative_seed_wco_6digit"
+  },
+  {
+    "hs_code": "8471.41",
+    "description": "Other automatic data processing machines comprising a CPU and input/output units combined in one housing (desktop computers)",
+    "source": "illustrative_seed_wco_6digit"
+  },
+  {
+    "hs_code": "8517.12",
+    "description": "Telephones for cellular networks or other wireless networks (mobile phones, smartphones)",
+    "source": "illustrative_seed_wco_6digit"
+  },
+  {
+    "hs_code": "8517.62",
+    "description": "Machines for the reception, conversion, transmission or regeneration of voice, images or other data, including switches and routers",
+    "source": "illustrative_seed_wco_6digit"
+  },
+  {
+    "hs_code": "8528.72",
+    "description": "Reception apparatus for television, colour, not designed to incorporate a video display",
+    "source": "illustrative_seed_wco_6digit"
+  },
+  {
+    "hs_code": "8703.23",
+    "description": "Motor cars with spark-ignition internal combustion engine, cylinder capacity 1500cc to 3000cc",
+    "source": "illustrative_seed_wco_6digit"
+  },
+  {
+    "hs_code": "9018.90",
+    "description": "Medical, surgical, dental or veterinary instruments and appliances",
+    "source": "illustrative_seed_wco_6digit"
+  },
+  {
+    "hs_code": "9403.60",
+    "description": "Other wooden furniture",
+    "source": "illustrative_seed_wco_6digit"
+  },
+  {
+    "hs_code": "9503.00",
+    "description": "Tricycles, scooters, pedal cars, dolls, other toys, and reduced-size scale models",
+    "source": "illustrative_seed_wco_6digit"
+  }
+]

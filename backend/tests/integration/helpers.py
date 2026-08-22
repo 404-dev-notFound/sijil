@@ -62,3 +62,32 @@ async def wait_for_document_status(
         f"document {document_id} did not reach {terminal_statuses} within {timeout}s "
         f"(last status: {document['status']!r})"
     )
+
+
+async def wait_for_line_items_classified(
+    client: AsyncClient,
+    *,
+    shipment_id: str,
+    headers: dict[str, str],
+    expected_count: int,
+    timeout: float = _DEFAULT_POLL_TIMEOUT_SECONDS,
+) -> list[dict]:
+    """Polls GET .../line-items until the real classification worker has produced a
+    classification for every expected line item (or raises if it doesn't within
+    timeout)."""
+    elapsed = 0.0
+    items: list[dict] = []
+    while elapsed < timeout:
+        response = await client.get(
+            f"/api/v1/shipments/{shipment_id}/line-items", headers=headers
+        )
+        assert response.status_code == 200, response.text
+        items = response.json()["items"]
+        if len(items) >= expected_count and all(item["classification"] for item in items):
+            return items
+        await asyncio.sleep(_POLL_INTERVAL_SECONDS)
+        elapsed += _POLL_INTERVAL_SECONDS
+    raise AssertionError(
+        f"line items for shipment {shipment_id} did not all reach a classified state "
+        f"within {timeout}s (last seen: {items!r})"
+    )

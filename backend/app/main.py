@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from sqlalchemy import text
 
-from app.api.v1 import auth, companies, shipments
+from app.api.v1 import auth, classification, companies, shipments
 from app.config.database import engine
 from app.config.settings import get_settings
 from app.integrations.object_storage import ObjectStorageClient
@@ -29,7 +29,10 @@ register_error_handlers(app)
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(companies.router, prefix="/api/v1/companies", tags=["companies"])
 app.include_router(shipments.router, prefix="/api/v1/shipments", tags=["shipments"])
-# Phase 3+: classification.py, billing.py mount here once their business logic exists.
+app.include_router(
+    classification.router, prefix="/api/v1/shipments", tags=["classification"]
+)
+# Phase 7+: billing.py mounts here once its business logic exists.
 
 
 @app.get("/health")

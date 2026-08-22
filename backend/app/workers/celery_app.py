@@ -16,9 +16,13 @@ celery_app.conf.update(
     # services/ (services/document_service.py depends on *this* module to enqueue
     # tasks by name, so the reverse import would be circular). Celery resolves and
     # imports it lazily inside each worker process at startup.
-    imports=("app.workers.document_processing_tasks",),
+    imports=(
+        "app.workers.document_processing_tasks",
+        "app.workers.classification_tasks",
+    ),
 )
 
 # Phase 2: document_processing_tasks.py registers "process_document" against this app.
+# Phase 3: classification_tasks.py registers "classify_shipment_from_document".
 # Phase 7: report_generation_tasks.py adds "generate_report" the same way. Workers call
 # services/ directly, not through the API layer (architecture doc Section 5).

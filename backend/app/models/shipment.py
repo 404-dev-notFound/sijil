@@ -11,6 +11,7 @@ from app.models.mixins import TimestampMixin, UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
     from app.models.document import Document
+    from app.models.line_item import LineItem
 
 
 class Shipment(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -37,5 +38,8 @@ class Shipment(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     documents: Mapped[list["Document"]] = relationship(
+        back_populates="shipment", cascade="all, delete-orphan"
+    )
+    line_items: Mapped[list["LineItem"]] = relationship(
         back_populates="shipment", cascade="all, delete-orphan"
     )

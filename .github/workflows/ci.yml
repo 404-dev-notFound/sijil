@@ -43,7 +43,7 @@ jobs:
         run: ruff check .
 
       - name: Type check
-        run: mypy app tests
+        run: mypy app scripts tests
 
       - name: Apply migrations
         run: alembic upgrade head
@@ -67,13 +67,18 @@ jobs:
       - name: Integration tests
         run: pytest tests/integration -v
 
+      # Runs against LLM_PROVIDER=mock (the default — no secret required in CI): the
+      # mock classifier picks the nearest real vector-search match, so this validates
+      # retrieval quality against tests/golden_sets/baseline.json and fails the build
+      # if it regresses (architecture doc Section 25). Set LLM_PROVIDER=claude with a
+      # real key to also validate GRI-reasoning accuracy — that's a manual/local run,
+      # not run here, to avoid real LLM cost and flakiness on every PR.
+      - name: Golden-set classification regression
+        run: pytest tests/golden_sets -v
+
       - name: Celery worker log
         if: always()
         run: cat /tmp/celery.log || true
-
-      # Phase 3+: add the golden-set classification regression step here (architecture
-      # doc Section 25) once ClassificationService and tests/golden_sets/ exist — it
-      # should fail the build if accuracy drops below the last known-good baseline.
 
   frontend:
     runs-on: ubuntu-latest

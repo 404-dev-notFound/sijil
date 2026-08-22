@@ -2,6 +2,7 @@ import asyncio
 import uuid
 
 from app.config.database import async_session_factory, engine
+from app.models.enums import DocumentStatus, DocumentType
 from app.services.document_extraction_service import DocumentExtractionService
 from app.workers.celery_app import celery_app
 
@@ -27,10 +28,21 @@ async def _process_document(document_id: uuid.UUID) -> None:
     try:
         async with async_session_factory() as session:
             try:
-                await DocumentExtractionService(session).extract(document_id)
+                document = await DocumentExtractionService(session).extract(document_id)
                 await session.commit()
             except Exception:
                 await session.rollback()
                 raise
+
+        # Chained after commit, not inside the transaction above — the classification
+        # worker reads this document from its own connection and must never dequeue a
+        # task before the row it depends on is durably committed (same "commit before
+        # enqueue" rule as document_service.py's upload_document).
+        if (
+            document is not None
+            and document.doc_type == DocumentType.COMMERCIAL_INVOICE
+            and document.status == DocumentStatus.EXTRACTED
+        ):
+            celery_app.send_task("classify_shipment_from_document", args=[str(document.id)])
     finally:
         await engine.dispose()
